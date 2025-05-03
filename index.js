@@ -1,12 +1,15 @@
 import express from "express";
 import connectDB from "./src/connection.js";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import User from "./src/models/userModel.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 connectDB();
 app.use(cors());
 app.use(express.json());
+dotenv.config();
 app.use(express.urlencoded({ extended: true }));
 // app.use(express.static('public'));
 
@@ -70,10 +73,12 @@ app.use("/login", async (req, res) => {
         message: "Invalid credentials",
       });
     }
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      user,
+      user: { ...user._doc, password: undefined },
+      token,
     });
   } catch (error) {
     console.log("error: ", error);
